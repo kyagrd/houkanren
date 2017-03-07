@@ -199,3 +199,9 @@ main :: IO ()
 main = do
   print $ runK (eq (tmId `App` Var x) (tmId `App` Var y)) start
   print $ runK (eq (tmId `App` Var x) (tmId `App` Var x)) start
+
+{-
+$ stack exec houkanren -- 
+[((),fromList [(x,Var y)])]
+[((),fromList [])]
+-}
