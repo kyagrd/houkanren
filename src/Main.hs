@@ -9,9 +9,9 @@ module Main where
 --   - reduction is very pure and very inefficient
 --     so not expected to be scalabe for large terms
 
+import           Control.Applicative
 import           HOuKanren
 import           Unbound.LocallyNameless (fv, s2n)
-import Control.Applicative
 
 {-# ANN module "HLint: ignore Use fmap" #-}
 {-# ANN module "HLint: ignore Use mappend" #-}
