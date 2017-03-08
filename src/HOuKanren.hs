@@ -1,3 +1,4 @@
+-- vim: sw=2: ts=2: expandtab: ai:
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
@@ -27,6 +28,7 @@ import qualified Unbound.LocallyNameless          as LN
 
 {-# ANN module "HLint: ignore Use fmap" #-}
 {-# ANN module "HLint: ignore Use mappend" #-}
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
 type NameTm = Name Tm
 
@@ -188,7 +190,6 @@ expand' (App t1 t2) = App <$> expand' t1 <*> expand' t2
 expand' (Lam b) = do (x,t) <- unbind b
                      lam x <$> expand' t
 
-
 -- unification
 eq :: Tm -> Tm -> K ()
 eq t1 t2 = join $ e <$> (reduce'<$>expand t1) <*> (reduce'<$>expand t2)
@@ -203,3 +204,28 @@ eq t1 t2 = join $ e <$> (reduce'<$>expand t1) <*> (reduce'<$>expand t2)
                              (x2,t2') <- unbind b2
                              eq t1' (subst x2 (Var x1) t2')
     e _ _ = mzero
+
+
+copy_term t t' = do
+  te <- expand' t
+  s <- sequence [(,) <$> pure v <*> (Var<$>newVar) | v <- fv te]
+  t' `eq` substs s te
+  te' <- expand' te
+  return [p | p@(_,Var v) <- s, v `elem` (fv te' :: [NameTm])]  -- exclude irrelevant subs
+  where
+    substs :: [(NameTm,Tm)] -> Tm -> Tm
+    substs = foldr ((.) . uncurry subst) id
+
+
+-- Convenience function: fresh
+class UFresh a where fresh :: (a -> K b) -> K b
+instance UFresh NameTm where fresh f = newVar >>= f
+instance UFresh Tm where fresh f = fresh (f . Var)
+instance (UFresh a, UFresh b) => UFresh (a,b) where
+    fresh f = fresh (\a -> fresh (\b -> f (a,b)))
+instance (UFresh a, UFresh b, UFresh c) => UFresh (a,b,c) where
+    fresh f = fresh (\a -> fresh (\(b,c) -> f (a,b,c)))
+instance (UFresh a, UFresh b, UFresh c, UFresh d) => UFresh (a,b,c,d) where
+    fresh f = fresh (\(a,b) -> fresh (\(c,d) -> f (a,b,c,d)))
+instance (UFresh a, UFresh b, UFresh c, UFresh d, UFresh e) => UFresh (a,b,c,d,e) where
+    fresh f = fresh (\(a,b,c) -> fresh (\(d,e) -> f (a,b,c,d,e)))
