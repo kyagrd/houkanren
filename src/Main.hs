@@ -8,11 +8,11 @@
 
 module Main where
 
--- A twist to MicroKanren implementation to support
--- Higher-Order Relational Programming
--- unification over beta-eta normal form
--- reduction is very pure and very inefficient
--- so not expected to be scalabe for large terms
+-- A twist to MicroKanren implementation https://github.com/rntz/ukanren
+-- to support Higher-Order Relational Programming
+--   - unification over beta-eta normal form
+--   - reduction is very pure and very inefficient
+--     so not expected to be scalabe for large terms
 
 import           Control.Applicative
 import           Control.Monad
@@ -199,3 +199,9 @@ main :: IO ()
 main = do
   print $ runK (eq (tmId `App` Var x) (tmId `App` Var y)) start
   print $ runK (eq (tmId `App` Var x) (tmId `App` Var x)) start
+
+{-
+$ stack exec houkanren -- 
+[((),fromList [(x,Var y)])]
+[((),fromList [])]
+-}
