@@ -50,7 +50,7 @@ main = do
   -- very simple cases of terms involving reduction
   putStrLn $ "Free Variables of " ++ show tm_id_x ++ " : "
           ++ show (fv tm_id_x :: [NameTm])
-  putStrLn $ "Free Variables of " ++ show tm_id_x ++ " : "
+  putStrLn $ "Free Variables of " ++ show tm_id_y ++ " : "
           ++ show (fv tm_id_y :: [NameTm])
   putStrLn $ "Unification : " ++ show tm_id_x ++ " =?= " ++ show tm_id_y
   print $ runK (eq tm_id_x tm_id_y) start

@@ -51,6 +51,13 @@ instance Hashable NameTm where
 
 lam x = Lam . bind x
 
+-- call by name evaluation
+eval :: Tm -> FreshM Tm
+eval (App (Lam b) t2) = do { (x,t) <- unbind b; eval $ subst x t2 t }
+eval t = return t
+
+eval' = runFreshM . eval
+
 -- beta, eta reduction step
 step :: Tm -> MaybeT FreshM Tm
 step (C s ts) = C s <$> stepList ts
@@ -192,13 +199,13 @@ expand' (Lam b) = do (x,t) <- unbind b
 
 -- unification
 eq :: Tm -> Tm -> K ()
-eq t1 t2 = join $ e <$> (reduce'<$>expand t1) <*> (reduce'<$>expand t2)
+eq t1 t2 = join $ e <$> (eval'<$>expand t1) <*> (eval'<$>expand t2)
   where
     e (Var x) (Var y) | x == y  = ok
-    e (Var x) t  = assign x (reduce' t)
-    e t (Var x)  = assign x (reduce' t)
+    e (Var x) t  = assign x (eval' t)
+    e t (Var x)  = assign x (eval' t)
     e (C s1 ts1) (C s2 ts2) | s1 == s2 && length ts1 == length ts2
-          = zipWithM_ eq (map reduce' ts1) (map reduce' ts2)
+          = zipWithM_ eq ts1 ts2
     e (App t11 t12) (App t21 t22) = do { eq t11 t21; eq t12 t22 }
     e (Lam b1) (Lam b2) = do (x1,t1') <- unbind b1
                              (x2,t2') <- unbind b2
