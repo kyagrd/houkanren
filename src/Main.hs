@@ -34,6 +34,11 @@ aAndB = do fresh $ \a -> eq a (C "7" [])
 
 
 
+etaTest :: Goal
+etaTest = eq (etaExpand $ C "a" []) (C "a" [])
+  where etaExpand f = lam x (f `App` Var x)
+
+
 test t = take 10 $ runK t start
 
 tst t = mapM_ print $ test t

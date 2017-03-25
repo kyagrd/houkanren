@@ -11,6 +11,7 @@ module HOuKanren where
 
 import           Control.Applicative
 import           Control.Monad
+import qualified Control.Monad.Parallel as Par
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Maybe
 import           Control.Monad.Trans.State.Strict
@@ -60,7 +61,7 @@ step (Lam b) = do
   (x,t) <- unbind b
   let fv_t :: [Name Tm] = fv t
   case t of  App t1 (Var y) | x == y && x `elem` fv_t -> pure t1 -- eta
-             _              -> lam x <$> step t
+             _                                        -> lam x <$> step t
 step (App t1@(Lam b) t2) = do { (x,t) <- unbind b; return $ subst x t2 t }
 step (App t1 t2) = App <$> step t1 <*> pure t2 <|> App <$> pure t1 <*> step t2
 
@@ -204,6 +205,10 @@ eq t1 t2 = join $ e <$> (eval'<$>expand t1) <*> (eval'<$>expand t2)
     e (Lam b1) (Lam b2) = do (x1,t1') <- unbind b1
                              (x2,t2') <- unbind b2
                              eq t1' (subst x2 (Var x1) t2')
+    e (Lam b1) t2 = do x <- newVar -- eta expansion of t2
+                       e (Lam b1) (lam x $ t2 `App` Var x)
+    e t1 (Lam b2) = do x <- newVar -- eta exapnsion of t1
+                       e (lam x $ t1 `App` Var x) (Lam b2)
     e _ _ = mzero
 
 
