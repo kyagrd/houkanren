@@ -3,12 +3,6 @@
 
 module Main where
 
--- A twist to MicroKanren implementation https://github.com/rntz/ukanren
--- to support Higher-Order Relational Programming
---   - unification over beta-eta normal form
---   - reduction is very pure and very inefficient
---     so not expected to be scalabe for large terms
-
 import           Control.Applicative
 import           HOuKanren
 import           Unbound.LocallyNameless (fv, s2n)
